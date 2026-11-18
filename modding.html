@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Modding SawGod: change game data, text, graphics and maps with plain files.">
+  <meta name="color-scheme" content="dark">
+  <title>SawGod: Modding</title>
+  <link rel="stylesheet" href="site.css">
+  <style>
+    .card { padding: .55rem .7rem .65rem; }
+    .card h3 { font-size: 1rem; margin-bottom: .25rem; }
+    .card p, .card li { font-size: .82rem; line-height: 1.5; }
+    .card ul { margin-top: .3rem; padding-left: 1.2rem; }
+    .card li + li { margin-top: .2rem; }
+    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .steps { display: grid; gap: 12px; padding: 0; list-style: none; counter-reset: step; }
+    .steps > li { counter-increment: step; }
+    .steps h3::before { content: counter(step) ". "; color: var(--cream); }
+    pre {
+      margin: .45rem 0 0;
+      padding: .5rem .65rem;
+      overflow-x: auto;
+      border: 2px inset #3c5280;
+      background: #08101f;
+      font: .8rem/1.45 Consolas, "Courier New", monospace;
+      color: var(--cream);
+    }
+    pre .c { color: var(--muted); }
+    .file { margin-top: .5rem; font-size: .76rem; color: var(--muted); }
+    .file + pre { margin-top: .15rem; }
+    .table-frame { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .8rem; line-height: 1.45; }
+    th, td { padding: .4rem .55rem; text-align: left; vertical-align: top; border: 1px solid var(--edge); }
+    thead th { font: bold .85rem Georgia, "Times New Roman", serif; color: var(--gold); background: #1d3257; }
+    tbody th { font-weight: normal; white-space: nowrap; }
+    .note { margin-top: .6rem; font-size: .8rem; color: var(--muted); }
+    .notice { margin-top: .8rem; padding: .45rem .7rem; border: 2px dashed var(--edge); font-size: .82rem; }
+    .notice b { color: var(--cream); }
+    .links { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; padding: 0; list-style: none; font-weight: bold; }
+    @media (max-width: 760px) {
+      .two-col { grid-template-columns: minmax(0, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="mast">
+    <div class="wrap mast-inner">
+      <a class="brand" href="./" aria-label="SawGod home"><img src="media/sawgod_sg_mark.png" alt="SG" width="48" height="48"></a>
+      <nav aria-label="Site">
+        <a href="./">Home</a>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="architecture.html">How it works</a></span>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="modding.html" aria-current="page">Modding</a></span>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="https://github.com/projectsawgod/sawgod">GitHub</a></span>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="wrap page-head">
+      <h1>Modding SawGod</h1>
+      <p>SawGod keeps the game's data, text, graphics and maps in plain files: spreadsheets, PNGs and text you can
+        open in ordinary tools. A <b>mod</b> is a folder of replacement files, or the same folder zipped into a
+        <code>.sgz</code> file. <code>.sgz</code> files are just zipped resource packs. Each file in a mod changes
+        only what it lists, and you never need to touch the game itself.</p>
+      <p class="notice"><b>The mod format may change</b> in 1.x releases. Any change will be listed in the
+        release notes.</p>
+    </div>
+
+    <section id="install">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Install a mod</h2>
+        </div>
+        <div class="two-col">
+          <div class="panel card">
+            <h3>Drop it in <code>mods/</code></h3>
+            <p>Put the folder or <code>.sgz</code> file in the <code>mods/</code> folder inside the game's data
+              folder, then start the game. To remove it, take it out and restart.</p>
+            <ul>
+              <li><b>Windows and Linux:</b> beside the game, next to <code>sawgod.toml</code>.</li>
+              <li><b>macOS:</b> <code>~/Library/Application Support/sawgod/sawgod/</code></li>
+              <li><b>Android:</b> mods live in the app's private storage, so they are not easy to install
+                yet.</li>
+            </ul>
+          </div>
+          <div class="panel card">
+            <h3>Several mods</h3>
+            <p>Mods load in name order. When two mods change the same thing (the same table cell, line of text
+              or file), the later one wins.</p>
+            <p>At startup the game lists each mod and what it changed. A mod it can't read, or a bad row, is
+              reported and skipped; the game still starts.</p>
+            <p>To try a mod for one session only, start the game with <code>sawgod --mod PATH</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="first">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Your first mod: cheap Potions</h2>
+          <p>This mod makes a Potion cost 1 gold.</p>
+        </div>
+        <ol class="steps">
+          <li class="panel card">
+            <h3>Make the folder</h3>
+            <pre>cheap-potions/
+  mod.toml          <span class="c">name, version, author, description (optional)</span>
+  tables/
+    items.csv       <span class="c">only the rows and columns you change</span></pre>
+          </li>
+          <li class="panel card">
+            <h3>Describe it</h3>
+            <p class="file"><code>mod.toml</code></p>
+            <pre>name = "Cheap Potions"
+version = "1.0"
+author = "you"
+description = "Potions cost 1 gold"</pre>
+          </li>
+          <li class="panel card">
+            <h3>Change the price</h3>
+            <p>Item 0 is the Potion. Rows you leave out, and columns you don't give, keep their values.</p>
+            <p class="file"><code>tables/items.csv</code></p>
+            <pre>id,price
+0,1</pre>
+          </li>
+          <li class="panel card">
+            <h3>Try it</h3>
+            <p>Put <code>cheap-potions/</code> in <code>mods/</code>, start the game and visit a shop. To share
+              it, zip the folder and rename the zip to <code>cheap-potions.sgz</code>.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="what">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>What you can change</h2>
+          <p>A mod mirrors the layout of the game's own resource packs.</p>
+        </div>
+        <div class="table-frame panel">
+          <table>
+            <thead><tr><th scope="col">Put this in your mod</th><th scope="col">To change</th></tr></thead>
+            <tbody>
+              <tr><th scope="row"><code>tables/*.csv</code></th><td>Game data: items, shops, monsters and their
+                graphics, formations, encounters and their odds, maps, tilesets, meat.</td></tr>
+              <tr><th scope="row"><code>text/en.csv</code>, <code>text/ja.csv</code></th><td>Any line of text, by
+                key: menus, battle messages, names, item descriptions, dialogue.</td></tr>
+              <tr><th scope="row"><code>gfx/*.png</code></th><td>WonderSwan Color graphics: tilesets, battle and
+                scene art, the font. Indexed PNGs; keep each picture's size.</td></tr>
+              <tr><th scope="row"><code>gb/</code></th><td>The Game Boy look: map tiles, sprites, font, monsters
+                and title.</td></tr>
+              <tr><th scope="row"><code>maps/</code></th><td>Field maps: layout, walkability and tile sets.</td></tr>
+              <tr><th scope="row"><code>scripts/</code>, <code>raw/</code>, <code>audio/</code></th><td>Event
+                scripts, sound and other data not decoded yet, byte for byte; keep the size.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Every format is documented in the <a href="https://github.com/projectsawgod/sawgod/blob/v1.0.0/docs/MODS.md">mod
+          reference</a>, with the full list of tables in the <a href="https://github.com/projectsawgod/sawgod/blob/v1.0.0/docs/DATA_TABLES.md">table
+          reference</a>.</p>
+      </div>
+    </section>
+
+    <section id="find">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Find what to change</h2>
+        </div>
+        <div class="two-col">
+          <div class="panel card">
+            <h3>Look inside the game's files</h3>
+            <p>On first run SawGod builds <code>wsc.sgz</code> and <code>gb.sgz</code> in the data folder from
+              your ROM. Copy one somewhere else, rename the copy to <code>.zip</code> and open it to see every
+              table, text file and picture, with their IDs and file names.</p>
+            <p>Copy only what you change into your mod. Never edit the originals: the game rebuilds them, and
+              your changes belong in a mod.</p>
+          </div>
+          <div class="panel card">
+            <h3>Translate</h3>
+            <p>Text is keyed, so a translation is a <code>text/en.csv</code> with <code>key,text</code> rows.
+              Keep tokens such as <code>{actor}</code> and <code>{amount}</code>; you may reorder them to suit
+              the sentence.</p>
+            <p>The <a href="https://github.com/projectsawgod/sawgod/blob/v1.0.0/docs/TEXT.md">text guide</a>
+              covers tokens, line breaks, the fit check and the font.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="code">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Beyond files</h2>
+          <p>Rules the tables can't express (how damage is worked out, what happens when a battle starts) change
+            in code. SawGod's source exposes C++ hooks for game events and values; this needs a source build. See
+            <a href="architecture.html">How it works</a> for the big picture.</p>
+        </div>
+        <ul class="links">
+          <li><a href="https://github.com/projectsawgod/sawgod/blob/v1.0.0/docs/CODE_MAP.md">Code map</a></li>
+          <li><a href="https://github.com/projectsawgod/sawgod/blob/v1.0.0/docs/BUILDING.md">Build and test</a></li>
+          <li><a href="https://github.com/projectsawgod/sawgod/blob/v1.0.0/CONTRIBUTING.md">Contributing</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <p>SawGod is available for Windows, macOS, Linux, and Android</p>
+      <p>Requires a compatible WonderSwan Color ROM supplied by the player.</p>
+      <p>Questions? Contact <a href="mailto:projectsawgod@gmail.com">projectsawgod@gmail.com</a></p>
+    </div>
+  </footer>
+</body>
+</html>
