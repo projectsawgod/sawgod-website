@@ -75,6 +75,8 @@
     .steps li { counter-increment: step; padding: .5rem .65rem .6rem; }
     .steps h3 { font-size: .98rem; }
     .steps h3::before { content: counter(step) ". "; color: var(--cream); }
+    .steps .check { grid-column: 4; counter-increment: none; }
+    .steps .check h3::before { content: none; }
     .steps p { margin-top: .25rem; font-size: .8rem; line-height: 1.45; }
 
     /* Mods table. */
@@ -97,6 +99,7 @@
         border-inline: 9px solid transparent; border-block: 0; border-top: 11px solid var(--gold);
       }
       .steps, .two-col { grid-template-columns: minmax(0, 1fr); }
+      .steps .check { grid-column: auto; }
     }
   </style>
 </head>
@@ -126,17 +129,7 @@
     <section id="diagram">
       <div class="wrap">
         <div class="section-head">
-          <h2 class="with-walkers">
-            <picture class="section-walker" aria-hidden="true">
-              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-1.png">
-              <img src="media/walk-gb-1.gif" width="32" height="32" alt="">
-            </picture>
-            <span>From your cartridge to the screen</span>
-            <picture class="section-walker" aria-hidden="true">
-              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-1.png">
-              <img src="media/walk-wsc-1.gif" width="32" height="32" alt="">
-            </picture>
-          </h2>
+          <h2>From your cartridge to the screen</h2>
         </div>
 
         <div class="diagram">
@@ -150,7 +143,7 @@
             </div>
             <div class="panel card">
               <h3>Mods</h3>
-              <p>Folders or <code>.sgz</code> files that replace tables, text or graphics, file by file.</p>
+              <p>Folders or <code>.sgz</code> files that replace tables, text or graphics, file by file. <code>.sgz</code> files are just zipped resource packs.</p>
             </div>
             <div class="panel card">
               <h3>Controls</h3>
@@ -178,6 +171,7 @@
                   <li><b>Hooks</b>events and values</li>
                   <li><b>Saves</b>nine slots and autosave</li>
                 </ul>
+                <span class="where"><code>src/game/</code></span>
               </div>
               <div class="layer">
                 <h3>The WonderSwan model</h3>
@@ -212,7 +206,7 @@
             </div>
             <div class="panel card">
               <h3>Saves</h3>
-              <p>Readable TOML files beside your options.</p>
+              <p>Human-readable TOML files beside your options. You can edit your save, I won't tell.</p>
             </div>
           </div>
         </div>
@@ -226,17 +220,7 @@
     <section id="tick">
       <div class="wrap">
         <div class="section-head">
-          <h2 class="with-walkers">
-            <picture class="section-walker" aria-hidden="true">
-              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-2.png">
-              <img src="media/walk-gb-2.gif" width="32" height="32" alt="">
-            </picture>
-            <span>One tick</span>
-            <picture class="section-walker" aria-hidden="true">
-              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-2.png">
-              <img src="media/walk-wsc-2.gif" width="32" height="32" alt="">
-            </picture>
-          </h2>
+          <h2>One tick</h2>
           <p>75.47 times a second, the same four steps:</p>
         </div>
         <ol class="steps">
@@ -248,6 +232,8 @@
             made is written to disk.</p></li>
           <li class="panel"><h3>Draw</h3><p>GB, WSC or Enhanced, plus the menus, presented at your display's own
             refresh rate.</p></li>
+          <li class="panel check"><h3>Routine by routine</h3><p>Each decompiled routine is run side by side with
+            the original machine code on the same inputs, and every register and byte of memory must match.</p></li>
         </ol>
       </div>
     </section>
@@ -255,17 +241,7 @@
     <section id="mods">
       <div class="wrap">
         <div class="section-head">
-          <h2 class="with-walkers">
-            <picture class="section-walker" aria-hidden="true">
-              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-3.png">
-              <img src="media/walk-gb-3.gif" width="32" height="32" alt="">
-            </picture>
-            <span>Where mods plug in</span>
-            <picture class="section-walker" aria-hidden="true">
-              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-3.png">
-              <img src="media/walk-wsc-3.gif" width="32" height="32" alt="">
-            </picture>
-          </h2>
+          <h2>Where mods plug in</h2>
           <p>A mod is a folder or <code>.sgz</code> file laid out like the game's own archives. Each file replaces
             only what it lists; when two mods change the same thing, the later one wins.</p>
         </div>
@@ -281,36 +257,6 @@
           </table>
         </div>
         <p class="note">The mod format may change in 1.x releases. <a href="modding.html">Start modding</a>.</p>
-      </div>
-    </section>
-
-    <section id="checked">
-      <div class="wrap">
-        <div class="section-head">
-          <h2 class="with-walkers">
-            <picture class="section-walker" aria-hidden="true">
-              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-esper.png">
-              <img src="media/walk-gb-esper.gif" width="32" height="32" alt="">
-            </picture>
-            <span>How it stays faithful</span>
-            <picture class="section-walker" aria-hidden="true">
-              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-esper.png">
-              <img src="media/walk-wsc-esper.gif" width="32" height="32" alt="">
-            </picture>
-          </h2>
-        </div>
-        <div class="two-col">
-          <div class="panel card">
-            <h3>Routine by routine</h3>
-            <p>Each decompiled routine is run side by side with the original machine code on the same inputs, and
-              every register and byte of memory must match.</p>
-          </div>
-          <div class="panel card">
-            <h3>Whole playthroughs</h3>
-            <p>Recorded button presses replay long stretches of the game, and the game state must come out
-              identical in every mode.</p>
-          </div>
-        </div>
       </div>
     </section>
 
