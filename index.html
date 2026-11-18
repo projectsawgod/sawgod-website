@@ -150,6 +150,19 @@
       touch-action: pan-y;
     }
     .compare-view:focus-within { outline: 2px solid #ffe18d; outline-offset: 2px; }
+    .get { display: inline-block; margin-top: .7rem; padding: .3rem .9rem; border: 3px outset #8097bb; background: #21385d; color: var(--link); font: bold 1rem Georgia, "Times New Roman", serif; text-decoration: none; }
+    .get:visited { color: var(--link); }
+    .get:hover { color: white; background: #2a4672; }
+    .get:active { border-style: inset; }
+    .downloads { display: grid; grid-template-columns: repeat(2, minmax(0, 448px)); gap: 1rem 32px; }
+    .download { padding: .55rem .7rem .7rem; }
+    .download h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .6rem; }
+    .download .req { font: .76rem Verdana, Geneva, sans-serif; color: var(--muted); }
+    .download p { margin-top: .45rem; font-size: .8rem; color: var(--muted); }
+    .download .get { font-size: .92rem; }
+    .download-notes { margin-top: 1rem; font-size: .83rem; }
+    .download-notes p + p { margin-top: .3rem; }
+    .download-links { display: flex; flex-wrap: wrap; gap: .2rem 1.2rem; margin-top: .5rem; font-weight: bold; }
     .project-notes { display: grid; gap: .85rem; }
     .project-note h3 + p { margin-top: var(--paragraph-gap); }
     footer { border-top: 3px groove #6679a8; padding-block: 1rem 1.4rem; background: #17284e; }
@@ -198,7 +211,7 @@
       .wrap { width: calc(100% - 28px); max-width: 448px; }
       section { padding-block: 1rem; }
       .mast-inner { flex-wrap: wrap; gap: .25rem .7rem; }
-      .hero, .two, .scene-wide, .comparison-grid { grid-template-columns: minmax(0, 448px); }
+      .hero, .two, .scene-wide, .comparison-grid, .downloads { grid-template-columns: minmax(0, 448px); }
       .hero { gap: 18px; padding-block: 1.2rem; }
     }
   </style>
@@ -209,7 +222,8 @@
     <div class="wrap mast-inner">
       <a class="brand" href="#top" aria-label="SawGod home"><img src="media/sawgod_sg_mark.png" alt="SG" width="48" height="48"></a>
       <nav aria-label="Showcase sections">
-        <a href="#graphics">Graphics</a>
+        <a href="#download">Download</a>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="#graphics">Graphics</a></span>
         <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="#soundtrack">Soundtrack</a></span>
         <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="#interface">Interface</a></span>
         <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="#translation">Translation</a></span>
@@ -233,6 +247,7 @@
           A decompilation and native rebuild of the 2002 WonderSwan Color remake of the 1989 Game Boy RPG.
         </p>
         <p class="platforms">Available for Windows, macOS, Linux, and Android</p>
+        <a class="get" href="#download">Download SawGod 1.0</a>
       </div>
       <figure>
         <picture class="hero-image">
@@ -242,6 +257,45 @@
         <figcaption class="caption">What secrets lie atop the tower?</figcaption>
       </figure>
     </div>
+    <section id="download">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Download</h2>
+          <p>SawGod 1.0 is free. You need your own Japanese WonderSwan Color ROM of <span lang="ja">魔界塔士 Sa・Ga</span> (<code>.wsc</code>, or zipped as <code>.zip</code> or <code>.7z</code>); no game data is included. On first run, choose your ROM, and SawGod sets up everything else.</p>
+        </div>
+        <div class="downloads">
+          <div class="panel download">
+            <h3>Windows <span class="req">64-bit</span></h3>
+            <a class="get" href="https://github.com/projectsawgod/sawgod/releases/latest/download/sawgod-windows-x86_64.zip">Download for Windows</a>
+            <p>Unzip the whole folder and open <b>sawgod.exe</b>. If Windows warns about an unrecognized app, choose <i>More info</i>, then <i>Run anyway</i>.</p>
+          </div>
+          <div class="panel download">
+            <h3>macOS <span class="req">Apple Silicon, macOS 11 or later</span></h3>
+            <a class="get" href="https://github.com/projectsawgod/sawgod/releases/latest/download/sawgod-macos-arm64.zip">Download for macOS</a>
+            <p>Unzip and drag <b>SawGod.app</b> to Applications. The first time, right-click it and choose <i>Open</i>; on newer macOS, use <i>System Settings › Privacy &amp; Security › Open Anyway</i>.</p>
+          </div>
+          <div class="panel download">
+            <h3>Linux <span class="req">x86_64, glibc 2.39 or later</span></h3>
+            <a class="get" href="https://github.com/projectsawgod/sawgod/releases/latest/download/sawgod-linux-x86_64.tar.gz">Download for Linux</a>
+            <p>Extract it to a folder you can write to and run <b>./sawgod</b>.</p>
+          </div>
+          <div class="panel download">
+            <h3>Android <span class="req">Android 8.0 or later, gamepad required</span></h3>
+            <a class="get" href="https://github.com/projectsawgod/sawgod/releases/latest/download/sawgod-android-arm64-v8a-release.apk">Download for Android</a>
+            <p>Open the APK on your device and allow installing from that source. Connect a gamepad: there are no touch controls yet.</p>
+          </div>
+        </div>
+        <div class="download-notes">
+          <p>Each download includes a README with controls, where your saves live, and how to keep them when you update.</p>
+          <div class="download-links">
+            <a href="https://github.com/projectsawgod/sawgod/releases/latest/download/SHA256SUMS.txt">Checksums</a>
+            <a href="https://github.com/projectsawgod/sawgod/releases/latest">Release notes</a>
+            <a href="https://github.com/projectsawgod/sawgod">Source code</a>
+            <a href="https://github.com/projectsawgod/sawgod/issues">Report a problem</a>
+          </div>
+        </div>
+      </div>
+    </section>
     <section class="dark" id="graphics">
       <div class="wrap">
         <div class="section-head">
