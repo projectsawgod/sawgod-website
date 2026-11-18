@@ -73,11 +73,11 @@
     .around b { color: var(--cream); }
 
     /* One tick. */
-    .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 0; list-style: none; counter-reset: step; }
+    .steps { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 640px; margin-inline: auto; gap: 10px; padding: 0; list-style: none; counter-reset: step; }
     .steps li { counter-increment: step; padding: .5rem .65rem .6rem; }
     .steps h3 { font-size: .98rem; }
     .steps h3::before { content: counter(step) ". "; color: var(--cream); }
-    .steps .check { grid-column: 4; counter-increment: none; }
+    .steps .check { counter-increment: none; }
     .steps .check h3::before { content: none; }
     .steps p { margin-top: .25rem; font-size: .8rem; line-height: 1.45; }
 
@@ -94,8 +94,7 @@
     .links { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; padding: 0; list-style: none; font-weight: bold; }
 
     @media (max-width: 760px) {
-      .steps, .two-col { grid-template-columns: minmax(0, 1fr); }
-      .steps .check { grid-column: auto; }
+      .two-col { grid-template-columns: minmax(0, 1fr); }
     }
   </style>
 </head>
