@@ -67,6 +67,9 @@
     }
     .hero h1 { outline: 2px ridge #bac5e3; background: #fff; }
     .hero h1 img { width: 100%; }
+    .hero h1 a { display: block; }
+    .hero .lede { margin-top: 1rem; }
+    .nowrap { white-space: nowrap; }
     .label { margin-top: .6rem; color: #ffde9b; font-size: .83rem; }
     .description-new { display: inline-block; margin-right: .2em; vertical-align: -.12em; }
     .platforms { color: var(--muted); font-size: .77rem; }
@@ -238,17 +241,15 @@
   <main id="main">
     <div class="wrap hero">
       <div>
-        <h1><img src="media/sawgod_wordmark_on_white.png" alt="SawGod" width="2040" height="898"></h1>
-        <p class="label"><span lang="ja">魔界塔士 Sa・Ga</span> / Final Fantasy Legend</p>
+        <h1><a href="#download"><img src="media/sawgod_wordmark_on_white.png" alt="SawGod: go to downloads" width="2040" height="898"></a></h1>
+        <a class="get" href="#download">Download SawGod 1.0.0</a>
         <p class="lede">
           <picture class="description-new">
             <source media="(prefers-reduced-motion: reduce)" srcset="media/description-new.png">
             <img src="media/description-new.gif" width="31" height="14" alt="New">
           </picture>
-          A decompilation and native rebuild of the 2002 WonderSwan Color remake of the 1989 Game Boy RPG.
+          A decompilation and native rebuild of the 2002 WonderSwan Color remake of the 1989 Game Boy RPG, <span lang="ja" class="nowrap">魔界塔士 Sa・Ga</span> / Final Fantasy Legend.
         </p>
-        <p class="platforms">Available for Windows, macOS, Linux, and Android</p>
-        <a class="get" href="#download">Download SawGod 1.0.0</a>
       </div>
       <figure>
         <picture class="hero-image">
