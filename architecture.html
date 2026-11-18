@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How SawGod is built: the decompiled WonderSwan Color game, the hardware model it runs on, and the port around it.">
+  <meta name="color-scheme" content="dark">
+  <title>SawGod: How it works</title>
+  <link rel="stylesheet" href="site.css">
+  <style>
+    /* The diagram: what you bring -> the game -> what you see and hear. */
+    .diagram {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1.2fr) 30px minmax(0, 1fr);
+      align-items: stretch;
+    }
+    .stage { display: flex; flex-direction: column; gap: .6rem; min-width: 0; }
+    .stage-label {
+      font: bold .78rem Georgia, "Times New Roman", serif;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+    }
+    .stage-label b { color: var(--cream); font-size: 1.05rem; margin-right: .3em; }
+    .card { padding: .5rem .65rem .6rem; }
+    .card h3 { font-size: 1rem; margin-bottom: .2rem; }
+    .card p { font-size: .8rem; line-height: 1.45; }
+    .card p + p { margin-top: .3rem; }
+    .where { display: block; margin-top: .3rem; font-size: .74rem; color: var(--muted); }
+    .flow-arrow { position: relative; }
+    .flow-arrow::before, .flow-arrow::after { content: ""; position: absolute; }
+    .flow-arrow::before { top: 50%; left: 4px; right: 11px; height: 4px; margin-top: -2px; background: var(--gold); }
+    .flow-arrow::after {
+      top: 50%; right: 2px; margin-top: -9px;
+      border-block: 9px solid transparent; border-left: 11px solid var(--gold);
+    }
+    /* The WonderSwan in the middle: a framed "machine" with three layers. */
+    .machine {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 6px;
+      border: 4px ridge #8a9ccb;
+      background: var(--panel-deep);
+    }
+    .layer { padding: .45rem .6rem .5rem; border: 2px groove #4d6596; background: var(--panel); }
+    .layer h3 { font-size: .98rem; }
+    .layer p { margin-top: .2rem; font-size: .8rem; line-height: 1.45; }
+    .layer .where { margin-top: .25rem; }
+    .layer-game { border-color: #b39b62; }
+    .seams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-top: .35rem; padding: 0; list-style: none; }
+    .seams li { padding: .2rem .35rem; border: 1px solid var(--edge); background: var(--panel-deep); font-size: .74rem; line-height: 1.3; }
+    .seams b { display: block; color: var(--cream); font-weight: bold; }
+    .tick { margin-top: auto; padding: .3rem; text-align: center; font-size: .76rem; color: var(--muted); border-top: 1px dashed var(--edge); }
+    .tick b { color: var(--cream); }
+    /* Three modes: written labels, never color alone. */
+    .modes { display: grid; gap: 3px; margin-top: .35rem; padding: 0; list-style: none; }
+    .modes li { display: grid; grid-template-columns: 5.6em minmax(0, 1fr); gap: .45rem; align-items: baseline; font-size: .76rem; line-height: 1.35; }
+    .modes b { padding: 1px 0; text-align: center; border: 1px outset #8097bb; background: #21385d; color: var(--cream); font: bold .72rem Verdana, Geneva, sans-serif; }
+    .then { margin-top: .35rem; padding-top: .3rem; border-top: 1px dashed var(--edge); font-size: .76rem; }
+    .around {
+      margin-top: .8rem;
+      padding: .45rem .7rem;
+      border: 2px dashed var(--edge);
+      font-size: .8rem;
+      text-align: center;
+      color: var(--muted);
+    }
+    .around b { color: var(--cream); }
+
+    /* One tick. */
+    .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 0; list-style: none; counter-reset: step; }
+    .steps li { counter-increment: step; padding: .5rem .65rem .6rem; }
+    .steps h3 { font-size: .98rem; }
+    .steps h3::before { content: counter(step) ". "; color: var(--cream); }
+    .steps p { margin-top: .25rem; font-size: .8rem; line-height: 1.45; }
+
+    /* Mods table. */
+    .table-frame { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .8rem; line-height: 1.45; }
+    th, td { padding: .4rem .55rem; text-align: left; vertical-align: top; border: 1px solid var(--edge); }
+    thead th { font: bold .85rem Georgia, "Times New Roman", serif; color: var(--gold); background: #1d3257; }
+    tbody th { font-weight: normal; white-space: nowrap; }
+    .note { margin-top: .6rem; font-size: .8rem; color: var(--muted); }
+
+    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .two-col .card p { font-size: .82rem; }
+    .links { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; padding: 0; list-style: none; font-weight: bold; }
+
+    @media (max-width: 760px) {
+      .diagram { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 30px auto 30px auto; }
+      .flow-arrow::before { top: 4px; bottom: 11px; left: 50%; right: auto; width: 4px; height: auto; margin: 0 0 0 -2px; }
+      .flow-arrow::after {
+        top: auto; bottom: 2px; right: auto; left: 50%; margin: 0 0 0 -9px;
+        border-inline: 9px solid transparent; border-block: 0; border-top: 11px solid var(--gold);
+      }
+      .steps, .two-col { grid-template-columns: minmax(0, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="mast">
+    <div class="wrap mast-inner">
+      <a class="brand" href="./" aria-label="SawGod home"><img src="media/sawgod_sg_mark.png" alt="SG" width="48" height="48"></a>
+      <nav aria-label="Site">
+        <a href="./">Home</a>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="architecture.html" aria-current="page">How it works</a></span>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="modding.html">Modding</a></span>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="https://github.com/projectsawgod/sawgod">GitHub</a></span>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="wrap page-head">
+      <h1>How SawGod works</h1>
+      <p>SawGod is not an emulator running the cartridge. Every routine of the 2002 WonderSwan Color game was
+        decompiled into C++, and that code now runs natively, on a small model of the WonderSwan that keeps its memory
+        and timing exact. One game runs underneath; Game Boy, WonderSwan Color and Enhanced are three ways of
+        presenting it, and the menus, music, saves and mods are built around it.</p>
+    </div>
+
+    <section id="diagram">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-1.png">
+              <img src="media/walk-gb-1.gif" width="32" height="32" alt="">
+            </picture>
+            <span>From your cartridge to the screen</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-1.png">
+              <img src="media/walk-wsc-1.gif" width="32" height="32" alt="">
+            </picture>
+          </h2>
+        </div>
+
+        <div class="diagram">
+          <div class="stage">
+            <p class="stage-label"><b>1</b>What you bring</p>
+            <div class="panel card">
+              <h3>Your ROM</h3>
+              <p>Checked on first run, then unpacked on your machine into two archives: <code>wsc.sgz</code> (data
+                tables, Japanese text, maps, art) and <code>gb.sgz</code> (the Game Boy look).</p>
+              <p>No game data ships with SawGod.</p>
+            </div>
+            <div class="panel card">
+              <h3>Mods</h3>
+              <p>Folders or <code>.sgz</code> files that replace tables, text or graphics, file by file.</p>
+            </div>
+            <div class="panel card">
+              <h3>Controls</h3>
+              <p>Keyboard and gamepad, mapped onto the WonderSwan's buttons.</p>
+            </div>
+          </div>
+
+          <div class="flow-arrow" aria-hidden="true"></div>
+
+          <div class="stage">
+            <p class="stage-label"><b>2</b>The game</p>
+            <div class="machine">
+              <div class="layer layer-game">
+                <h3>The decompiled game</h3>
+                <p>All 1,300 routines of the original, as readable C++. Same rules, numbers and random numbers as
+                  the cartridge.</p>
+                <span class="where"><code>src/game/</code></span>
+              </div>
+              <div class="layer">
+                <h3>The seams</h3>
+                <p>Where SawGod and mods reach into the game:</p>
+                <ul class="seams">
+                  <li><b>Text</b>every line by key</li>
+                  <li><b>Data tables</b>items, monsters, shops</li>
+                  <li><b>Hooks</b>events and values</li>
+                  <li><b>Saves</b>nine slots and autosave</li>
+                </ul>
+              </div>
+              <div class="layer">
+                <h3>The WonderSwan model</h3>
+                <p>The CPU's registers and memory, interrupts, and the video and sound chips the game expects.</p>
+                <span class="where"><code>src/emu/</code></span>
+              </div>
+              <p class="tick">One <b>tick</b> per WonderSwan frame: <b>75.47</b> a second</p>
+            </div>
+          </div>
+
+          <div class="flow-arrow" aria-hidden="true"></div>
+
+          <div class="stage">
+            <p class="stage-label"><b>3</b>What you see and hear</p>
+            <div class="panel card">
+              <h3>Picture</h3>
+              <ul class="modes">
+                <li><b>GB</b>Game Boy art, drawn from the same game state</li>
+                <li><b>WSC</b>the original WonderSwan Color picture</li>
+                <li><b>Enhanced</b>GPU effects: Mode 7, lighting, bloom, depth of field</li>
+              </ul>
+              <p class="then">Then the redesigned menus and text are drawn on top, and the picture is paced to
+                your display.</p>
+            </div>
+            <div class="panel card">
+              <h3>Sound</h3>
+              <ul class="modes">
+                <li><b>GB</b>Game Boy sound chip</li>
+                <li><b>WSC</b>WonderSwan sound chip</li>
+                <li><b>Enhanced</b>new arrangements, played through FluidSynth</li>
+              </ul>
+            </div>
+            <div class="panel card">
+              <h3>Saves</h3>
+              <p>Readable TOML files beside your options.</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="around">Around it all: <b>the app</b> (<code>src/app/</code>) runs the loop, and <b>port
+          services</b> (<code>src/engine/</code>) handle options, input, archives, mods and the GPU renderer.
+          Picture and sound modes switch at any time, independently.</p>
+      </div>
+    </section>
+
+    <section id="tick">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-2.png">
+              <img src="media/walk-gb-2.gif" width="32" height="32" alt="">
+            </picture>
+            <span>One tick</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-2.png">
+              <img src="media/walk-wsc-2.gif" width="32" height="32" alt="">
+            </picture>
+          </h2>
+          <p>75.47 times a second, the same four steps:</p>
+        </div>
+        <ol class="steps">
+          <li class="panel"><h3>Read input</h3><p>Keys and pads become WonderSwan buttons. While Options is open,
+            the game waits.</p></li>
+          <li class="panel"><h3>Run the game</h3><p>The decompiled routines run until the game waits for the next
+            frame, just as it did on the hardware.</p></li>
+          <li class="panel"><h3>Sound and saves</h3><p>The chosen music path gets its samples; any save the game
+            made is written to disk.</p></li>
+          <li class="panel"><h3>Draw</h3><p>GB, WSC or Enhanced, plus the menus, presented at your display's own
+            refresh rate.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="mods">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-3.png">
+              <img src="media/walk-gb-3.gif" width="32" height="32" alt="">
+            </picture>
+            <span>Where mods plug in</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-3.png">
+              <img src="media/walk-wsc-3.gif" width="32" height="32" alt="">
+            </picture>
+          </h2>
+          <p>A mod is a folder or <code>.sgz</code> file laid out like the game's own archives. Each file replaces
+            only what it lists; when two mods change the same thing, the later one wins.</p>
+        </div>
+        <div class="table-frame panel">
+          <table>
+            <thead><tr><th scope="col">Put this in your mod</th><th scope="col">To change</th></tr></thead>
+            <tbody>
+              <tr><th scope="row"><code>tables/*.csv</code></th><td>Game data by row: items, shops, monsters, encounters, formations, meat.</td></tr>
+              <tr><th scope="row"><code>text/en.csv</code>, <code>text/ja.csv</code></th><td>Any line of text by key: dialogue, battle messages, menu labels.</td></tr>
+              <tr><th scope="row"><code>gfx/</code>, <code>maps/</code>, <code>gb/</code></th><td>Graphics and maps, by path, in any of the three modes.</td></tr>
+              <tr><th scope="row">C++ hooks</th><td>Game events and values (a battle starting, gold won, a random encounter), in a source build.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">The mod format may change in 1.x releases. <a href="modding.html">Start modding</a>.</p>
+      </div>
+    </section>
+
+    <section id="checked">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-esper.png">
+              <img src="media/walk-gb-esper.gif" width="32" height="32" alt="">
+            </picture>
+            <span>How it stays faithful</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-esper.png">
+              <img src="media/walk-wsc-esper.gif" width="32" height="32" alt="">
+            </picture>
+          </h2>
+        </div>
+        <div class="two-col">
+          <div class="panel card">
+            <h3>Routine by routine</h3>
+            <p>Each decompiled routine is run side by side with the original machine code on the same inputs, and
+              every register and byte of memory must match.</p>
+          </div>
+          <div class="panel card">
+            <h3>Whole playthroughs</h3>
+            <p>Recorded button presses replay long stretches of the game, and the game state must come out
+              identical in every mode.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="code">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Read the code</h2>
+          <p>Everything is on GitHub under the MIT license.</p>
+        </div>
+        <ul class="links">
+          <li><a href="https://github.com/projectsawgod/sawgod/blob/v1.0.0/docs/CODE_MAP.md">Code map</a></li>
+          <li><a href="https://github.com/projectsawgod/sawgod/blob/v1.0.0/docs/DECOMP_GUIDE.md">Decompilation guide</a></li>
+          <li><a href="https://github.com/projectsawgod/sawgod/blob/v1.0.0/docs/BUILDING.md">Build and test</a></li>
+          <li><a href="modding.html">Modding</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <p>SawGod is available for Windows, macOS, Linux, and Android</p>
+      <p>Requires a compatible WonderSwan Color ROM supplied by the player.</p>
+      <p>Questions? Contact <a href="mailto:projectsawgod@gmail.com">projectsawgod@gmail.com</a></p>
+    </div>
+  </footer>
+</body>
+</html>
