@@ -11,8 +11,9 @@
     /* The diagram: what you bring -> the game -> what you see and hear. */
     .diagram {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1.2fr) 30px minmax(0, 1fr);
-      align-items: stretch;
+      grid-template-rows: auto 34px auto 34px auto;
+      max-width: 640px;
+      margin-inline: auto;
     }
     .stage { display: flex; flex-direction: column; gap: .6rem; min-width: 0; }
     .stage-label {
@@ -30,10 +31,10 @@
     .where { display: block; margin-top: .3rem; font-size: .74rem; color: var(--muted); }
     .flow-arrow { position: relative; }
     .flow-arrow::before, .flow-arrow::after { content: ""; position: absolute; }
-    .flow-arrow::before { top: 50%; left: 4px; right: 11px; height: 4px; margin-top: -2px; background: var(--gold); }
+    .flow-arrow::before { top: 4px; bottom: 11px; left: 50%; width: 4px; margin-left: -2px; background: var(--gold); }
     .flow-arrow::after {
-      top: 50%; right: 2px; margin-top: -9px;
-      border-block: 9px solid transparent; border-left: 11px solid var(--gold);
+      bottom: 2px; left: 50%; margin-left: -9px;
+      border-inline: 9px solid transparent; border-top: 11px solid var(--gold);
     }
     /* The WonderSwan in the middle: a framed "machine" with three layers. */
     .machine {
@@ -61,7 +62,8 @@
     .modes b { padding: 1px 0; text-align: center; border: 1px outset #8097bb; background: #21385d; color: var(--cream); font: bold .72rem Verdana, Geneva, sans-serif; }
     .then { margin-top: .35rem; padding-top: .3rem; border-top: 1px dashed var(--edge); font-size: .76rem; }
     .around {
-      margin-top: .8rem;
+      max-width: 640px;
+      margin: .8rem auto 0;
       padding: .45rem .7rem;
       border: 2px dashed var(--edge);
       font-size: .8rem;
@@ -92,12 +94,6 @@
     .links { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; padding: 0; list-style: none; font-weight: bold; }
 
     @media (max-width: 760px) {
-      .diagram { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 30px auto 30px auto; }
-      .flow-arrow::before { top: 4px; bottom: 11px; left: 50%; right: auto; width: 4px; height: auto; margin: 0 0 0 -2px; }
-      .flow-arrow::after {
-        top: auto; bottom: 2px; right: auto; left: 50%; margin: 0 0 0 -9px;
-        border-inline: 9px solid transparent; border-block: 0; border-top: 11px solid var(--gold);
-      }
       .steps, .two-col { grid-template-columns: minmax(0, 1fr); }
       .steps .check { grid-column: auto; }
     }
