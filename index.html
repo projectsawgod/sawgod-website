@@ -1,21 +1,527 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SawGod</title>
-<style>
-  html, body { height: 100%; margin: 0; }
-  body { display: grid; place-items: center; background: #080f20; color: #ebf2ff;
-         font: 18px/1.4 system-ui, sans-serif; text-align: center; }
-  h1 { font-size: 2.4rem; margin: 0 0 .3em; color: #ffde9b; }
-  p { margin: 0; color: #becce3; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Features of SawGod, a decompilation and native rebuild of 魔界塔士 Sa・Ga for WonderSwan Color.">
+  <meta name="color-scheme" content="dark">
+  <title>SawGod</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #e1e7f8;
+      --muted: #b9c8e9;
+      --link: #ffdc8a;
+      --edge: #526c9e;
+      --panel: #162746;
+      --page: #0d1931;
+      --paragraph-gap: .55rem;
+    }
+    * { box-sizing: border-box; }
+    body {
+      width: calc(100% - clamp(28px, 10vw, 144px));
+      max-width: 1016px;
+      margin: 24px auto 44px;
+      background: var(--page);
+      color: var(--ink);
+      font: .875rem/1.55 Verdana, Geneva, sans-serif;
+      border: 4px ridge #6679a8;
+    }
+    html {
+      background: #232050 url("media/wsc-window-tile.png") repeat left top;
+    }
+    h1, h2, h3, p, figure { margin: 0; }
+    p + p { margin-top: var(--paragraph-gap); }
+    h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.2; }
+    h2 { font-size: 1.45rem; }
+    h3 { font-size: 1.08rem; color: #ffde9b; }
+    a { color: var(--link); }
+    a:visited { color: #dfc7f4; }
+    a:hover { color: white; }
+    img { display: block; max-width: 100%; height: auto; }
+    picture { display: block; }
+    .image-frame img, .compare-view img, .hero-image img {
+      width: 100%;
+      image-rendering: auto;
+    }
+    button { font: inherit; cursor: pointer; }
+    :focus-visible { outline: 2px solid #ffe18d; outline-offset: 3px; }
+    .wrap { width: calc(100% - 64px); max-width: 928px; margin-inline: auto; }
+    .mast {
+      border-bottom: 4px groove #6679a8;
+      background: #20375e linear-gradient(#304d7b, #1b2e4d);
+    }
+    .mast-inner { display: flex; align-items: center; gap: 1rem; padding-block: .5rem; }
+    .brand { display: block; flex: 0 0 48px; }
+    .brand img { width: 48px; height: 48px; }
+    nav { display: flex; flex-wrap: wrap; align-items: center; font: bold .92rem Georgia, "Times New Roman", serif; }
+    .mast nav { gap: .12rem .5rem; }
+    .nav-entry { display: inline-flex; align-items: baseline; gap: .5rem; }
+    .nav-divider { color: var(--muted); }
+    .hero {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 448px));
+      align-items: center;
+      gap: 32px;
+      padding-block: 2rem;
+    }
+    .hero h1 { outline: 2px ridge #bac5e3; background: #fff; }
+    .hero h1 img { width: 100%; }
+    .label { margin-top: .6rem; color: #ffde9b; font-size: .83rem; }
+    .description-new { display: inline-block; margin-right: .2em; vertical-align: -.12em; }
+    .platforms { color: var(--muted); font-size: .77rem; }
+    .hero-image { box-shadow: 0 0 0 1px var(--edge); background: #080e20; }
+    .caption { margin-top: .3rem; color: var(--muted); font-size: .74rem; }
+    section { padding-block: 1.55rem; border-top: 3px groove #384d81; }
+    .section-head { margin-bottom: 1rem; }
+    .with-walkers {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      color: #fff2c6;
+    }
+    .with-walkers span { min-width: 0; }
+    .section-walker { flex: 0 0 32px; }
+    .section-walker img { image-rendering: pixelated; }
+    .section-head p { margin-top: var(--paragraph-gap); color: var(--ink); }
+    .action { display: inline-block; margin-top: .4rem; }
+    .two, .scene-wide, .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 448px));
+      gap: 1.4rem 32px;
+    }
+    .scene-wide { margin-top: .9rem; }
+    .scene-wide h3 { margin-bottom: .35rem; }
+    .panel { min-width: 0; outline: 2px ridge #7287b8; background: var(--panel); }
+    .image-frame, .compare-view { position: relative; background: #080e20; }
+    .panel figcaption { padding: .35rem .55rem; }
+    .panel figcaption p { margin-top: .1rem; font-size: .8rem; color: var(--muted); }
+    .panel-title { font-weight: bold; }
+    .comparison-block { display: flex; flex-direction: column; min-width: 0; }
+    .comparison-block .compare { margin-top: auto; }
+    .comparison-copy { margin: var(--paragraph-gap) 0 .5rem; color: var(--muted); font-size: .83rem; }
+    .compare-labels {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .4rem;
+      font-size: .74rem;
+    }
+    .compare-view { --split: 50%; overflow: hidden; }
+    #translation .compare-view { --split: 100%; }
+    .compare-view img { aspect-ratio: 14/9; }
+    .compare-left { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--split)) 0 0); }
+    .compare-line { position: absolute; inset: 0; pointer-events: none; }
+    .compare-line::before {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      left: var(--split);
+      width: 2px;
+      background: #fff4c6;
+      box-shadow: 0 0 2px black;
+      transform: translateX(-50%);
+    }
+    .compare-line span {
+      position: absolute;
+      top: 50%;
+      left: clamp(11px, var(--split), calc(100% - 11px));
+      transform: translate(-50%, -50%);
+      width: 22px;
+      height: 24px;
+      border: 1px outset #8097bb;
+      background: #21385d;
+
+    }
+    .compare-line span::before {
+      content: "";
+      position: absolute;
+      inset: 5px 7px;
+      border-inline: 1px solid #fff4c6;
+    }
+    .compare-view input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: ew-resize;
+      touch-action: pan-y;
+    }
+    .compare-view:focus-within { outline: 2px solid #ffe18d; outline-offset: 2px; }
+    .project-notes { display: grid; gap: .85rem; }
+    .project-note h3 + p { margin-top: var(--paragraph-gap); }
+    footer { border-top: 3px groove #6679a8; padding-block: 1rem 1.4rem; background: #17284e; }
+    .webring {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 2px;
+      width: min(100%, 400px);
+      margin: .9rem auto 0;
+      padding: 2px;
+      border: 3px ridge #858a9d;
+      background: #c9cee4;
+      color: #111648;
+      font: 1rem/1.4 Georgia, "Times New Roman", serif;
+      text-align: center;
+    }
+    .webring > div, .webring > nav { border: 1px groove #9ca4be; }
+    .webring-mark {
+      display: grid;
+      place-items: center;
+      padding: 6px;
+      background: #fff;
+    }
+    .webring-mark a {
+      display: block;
+      padding: 3px;
+      border: 1px solid #891e10;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    .webring-info { padding: 6px; background: #e8edfc; }
+    .webring-info p { margin: .2em auto; }
+    .webring a, .webring a:visited { color: #2520a0; }
+    .webring a:hover { color: #4c1590; }
+    .webring a:focus-visible { outline-color: #2520a0; outline-offset: 1px; }
+    .webring nav {
+      grid-column: 1 / -1;
+      justify-content: center;
+      gap: 0 .45em;
+    }
+    .foot { color: var(--muted); font-size: .74rem; }
+    .skip { position: absolute; left: 1rem; top: -6rem; background: var(--page); padding: .4rem; z-index: 5; }
+    .skip:focus { top: 1rem; }
+    @media (max-width: 760px) {
+      body { width: calc(100% - 16px); margin-top: 8px; border-width: 3px; }
+      .wrap { width: calc(100% - 28px); max-width: 448px; }
+      section { padding-block: 1rem; }
+      .mast-inner { flex-wrap: wrap; gap: .25rem .7rem; }
+      .hero, .two, .scene-wide, .comparison-grid { grid-template-columns: minmax(0, 448px); }
+      .hero { gap: 18px; padding-block: 1.2rem; }
+    }
+  </style>
 </head>
 <body>
-<main>
-  <h1>SawGod</h1>
-  <p>Coming soon.</p>
-</main>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="mast" id="top">
+    <div class="wrap mast-inner">
+      <a class="brand" href="#top" aria-label="SawGod home"><img src="media/sawgod_sg_mark.png" alt="SG" width="48" height="48"></a>
+      <nav aria-label="Showcase sections">
+        <a href="#graphics">Graphics</a>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="#soundtrack">Soundtrack</a></span>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="#interface">Interface</a></span>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="#translation">Translation</a></span>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="#boosts">Boosts &amp; Cheats</a></span>
+        <span class="nav-entry"><span class="nav-divider" aria-hidden="true">|</span><a href="#project">About</a></span>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    <div class="wrap hero">
+      <div>
+        <h1><img src="media/sawgod_wordmark_on_white.png" alt="SawGod" width="2040" height="898"></h1>
+        <p class="label"><span lang="ja">魔界塔士 Sa・Ga</span> / Final Fantasy Legend</p>
+        <p class="lede">
+          <picture class="description-new">
+            <source media="(prefers-reduced-motion: reduce)" srcset="media/description-new.png">
+            <img src="media/description-new.gif" width="31" height="14" alt="New">
+          </picture>
+          A decompilation and native rebuild of the 2002 WonderSwan Color remake of the 1989 Game Boy RPG.
+        </p>
+        <p class="platforms">Available for Windows, macOS, Linux, and Android</p>
+      </div>
+      <figure>
+        <picture class="hero-image">
+          <source media="(prefers-reduced-motion: reduce)" srcset="media/r4-world1-orbit.png">
+          <img src="media/orbit-smooth.gif" width="448" height="288" alt="Walking around the World 1 tower as the graphics shift from Game Boy to WonderSwan Color to Enhanced" fetchpriority="high">
+        </picture>
+        <figcaption class="caption">What secrets lie atop the tower?</figcaption>
+      </figure>
+    </div>
+    <section class="dark" id="graphics">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-1.png">
+              <img src="media/walk-gb-1.gif" width="32" height="32" alt="">
+            </picture>
+            <span>Enhanced graphics</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-1.png">
+              <img src="media/walk-wsc-1.gif" width="32" height="32" alt="">
+            </picture>
+          </h2>
+          <p>Switch between Game Boy, WonderSwan Color, and Enhanced graphics modes at any time.</p><p>Game Boy and WonderSwan Color modes use the exact original artwork, while Enhanced mode adds an angled Mode 7 world map, depth of field, point lighting, and bloom for an HD-2D-style presentation.</p>
+        </div>
+        <div class="two">
+          <figure class="panel">
+            <picture class="image-frame">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/battle-shifts.png">
+              <img src="media/battle-mode-cycle.gif" width="448" height="288" alt="A battle switches live from Enhanced to WonderSwan Color to Game Boy, then back to WonderSwan Color as the party attacks" loading="lazy">
+            </picture>
+            <figcaption><span class="panel-title">Battle mode shifts</span><p>Switch between Game Boy, WonderSwan Color, and Enhanced graphics modes even during battles!</p></figcaption>
+          </figure>
+          <figure class="panel">
+            <picture class="image-frame">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/sky-town-150-2x.png">
+              <img src="media/sky-town-150.gif" width="448" height="288" alt="The party walks through Sky Town as the game shifts from Game Boy to WonderSwan Color and then Enhanced" loading="lazy">
+            </picture>
+            <figcaption><span class="panel-title">Adjustable field map zoom</span><p>In Enhanced graphics mode, the camera can zoom out to show more of the towns and dungeons.</p></figcaption>
+          </figure>
+        </div>
+        <div class="scene-wide">
+          <div>
+            <h3>Point lighting and depth of field</h3>
+        <figure class="panel compare" data-compare>
+          <figcaption class="compare-labels"><span>Effects off</span><span>Effects on</span></figcaption>
+          <div class="compare-view">
+            <img src="media/r5-lighting-on-2x.png" width="448" height="288" alt="Tower lava bridge with light spilling onto the brickwork and soft detail at the edges" loading="lazy">
+            <div class="compare-left"><img src="media/r5-lighting-off-2x.png" width="448" height="288" alt="The same tower lava bridge with point lighting and depth of field disabled" loading="lazy"></div>
+            <div class="compare-line" aria-hidden="true"><span></span></div>
+            <input type="range" min="0" max="100" value="50" aria-label="Point lighting and depth of field comparison">
+          </div>
+        </figure>
+          </div>
+          <div>
+            <h3>Mode 7 world maps</h3>
+            <figure class="panel">
+              <picture class="image-frame">
+                <source media="(prefers-reduced-motion: reduce)" srcset="media/bike-road.png">
+                <img src="media/bike-road.gif" width="448" height="288" alt="A single bike rides east along a World 4 road in Enhanced mode" loading="lazy">
+              </picture>
+              <figcaption><p>Riding through the post-apocalyptic ruins.</p></figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="soundtrack" id="soundtrack">
+      <div class="wrap section-head">
+        <h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-esper.png">
+              <img src="media/walk-gb-esper.gif" width="32" height="32" alt="">
+            </picture>
+            <span>New soundtrack</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-esper.png">
+              <img src="media/walk-wsc-esper.gif" width="32" height="32" alt="">
+            </picture>
+          </h2>
+        <div>
+          <p>New, human-arranged versions of the classic Nobuo Uematsu soundtrack. Game Boy and WonderSwan Color audio are also available. Music switches seamlessly between all 3 modes in real-time.</p>
+          <a class="action" href="https://www.youtube.com/watch?v=U2MMHbMOLZI&amp;list=PLa_3Dns5vPwg">Listen to the Enhanced soundtrack on YouTube</a>
+        </div>
+      </div>
+    </section>
+    <section class="hair" id="interface">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-2.png">
+              <img src="media/walk-gb-2.gif" width="32" height="32" alt="">
+            </picture>
+            <span>Redesigned UI</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-2.png">
+              <img src="media/walk-wsc-2.gif" width="32" height="32" alt="">
+            </picture>
+          </h2>
+          <p>Menus have been completely redesigned for longer names and item descriptions. Drag the dividers to compare the original WonderSwan Color layout with the redesigned Enhanced interface.</p>
+        </div>
+        <div class="comparison-grid">
+      <div class="comparison-block">
+        <h3>Inventory</h3>
+        <p class="comparison-copy">Items and Key Items have been moved to separate tabs. Items and weapons now show their power and what stat they scale with.</p>
+        <figure class="panel compare" data-compare>
+          <figcaption class="compare-labels"><span>Original WSC</span><span>Enhanced</span></figcaption>
+          <div class="compare-view">
+            <img src="media/r4-menu-en-2x.png" srcset="media/r4-menu-en-2x.png 1x, media/r4-menu-en-4x.png 2x" width="448" height="288" alt="Enhanced inventory with a description for Potion" loading="lazy">
+            <div class="compare-left"><img src="media/r3-inventory-original-2x.png" srcset="media/r3-inventory-original-2x.png 1x, media/r3-inventory-original-4x.png 2x" width="448" height="288" alt="Original Japanese inventory with two item columns" loading="lazy"></div>
+            <div class="compare-line" aria-hidden="true"><span></span></div>
+            <input type="range" min="0" max="100" value="50" aria-label="Inventory comparison">
+          </div>
+        </figure>
+      </div>
+      <div class="comparison-block">
+        <h3>Armory stock</h3>
+        <p class="comparison-copy">See more of the shopkeeper's stock at once.</p>
+        <figure class="panel compare" data-compare>
+          <figcaption class="compare-labels"><span>Original WSC</span><span>Enhanced</span></figcaption>
+          <div class="compare-view">
+            <img src="media/r5-armory-list-en-2x.png" srcset="media/r5-armory-list-en-2x.png 1x, media/r5-armory-list-en-4x.png 2x" width="448" height="288" alt="Enhanced armory showing the stock list, prices, and item details" loading="lazy">
+            <div class="compare-left"><img src="media/r5-armory-list-wsc-2x.png" srcset="media/r5-armory-list-wsc-2x.png 1x, media/r5-armory-list-wsc-4x.png 2x" width="448" height="288" alt="Original armory stock list in Japanese" loading="lazy"></div>
+            <div class="compare-line" aria-hidden="true"><span></span></div>
+            <input type="range" min="0" max="100" value="50" aria-label="Armory stock comparison">
+          </div>
+        </figure>
+      </div>
+      <div class="comparison-block">
+        <h3>Equipment</h3>
+        <p class="comparison-copy">See a party member’s gear and stats.</p>
+        <figure class="panel compare" data-compare>
+          <figcaption class="compare-labels"><span>Original WSC</span><span>Enhanced</span></figcaption>
+          <div class="compare-view">
+            <img src="media/equipment-enhanced-2x.png" srcset="media/equipment-enhanced-2x.png 1x, media/equipment-enhanced-4x.png 2x" width="448" height="288" alt="Enhanced equipment screen with Treesong’s Long Sword selected" loading="lazy">
+            <div class="compare-left"><img src="media/equipment-wsc-2x.png" srcset="media/equipment-wsc-2x.png 1x, media/equipment-wsc-4x.png 2x" width="448" height="288" alt="Original equipment screen with the same sword selected" loading="lazy"></div>
+            <div class="compare-line" aria-hidden="true"><span></span></div>
+            <input type="range" min="0" max="100" value="50" aria-label="Equipment comparison">
+          </div>
+        </figure>
+      </div>
+      <div class="comparison-block">
+        <h3>Skills and abilities</h3>
+        <p class="comparison-copy">See a member’s stats, skills, and passive abilities.</p>
+        <figure class="panel compare" data-compare>
+          <figcaption class="compare-labels"><span>Original WSC</span><span>Enhanced</span></figcaption>
+          <div class="compare-view">
+            <img src="media/r3-skills-enhanced-2x.png" srcset="media/r3-skills-enhanced-2x.png 1x, media/r3-skills-enhanced-4x.png 2x" width="448" height="288" alt="Enhanced abilities and stats for Kaiser the Raven" loading="lazy">
+            <div class="compare-left"><img src="media/r3-skills-original-2x.png" srcset="media/r3-skills-original-2x.png 1x, media/r3-skills-original-4x.png 2x" width="448" height="288" alt="Original Japanese stats and abilities for Kaiser the Raven" loading="lazy"></div>
+            <div class="compare-line" aria-hidden="true"><span></span></div>
+            <input type="range" min="0" max="100" value="50" aria-label="Skills and abilities comparison">
+          </div>
+        </figure>
+      </div>
+      <div class="comparison-block">
+        <h3>Battle</h3>
+        <p class="comparison-copy">Party members and enemies alike have floating HP bars. Spells have been updated with lighting effects.</p>
+        <figure class="panel compare" data-compare>
+          <figcaption class="compare-labels"><span>Original WSC</span><span>Enhanced</span></figcaption>
+          <div class="compare-view">
+            <img src="media/lightning-enhanced-2x.png" srcset="media/lightning-enhanced-2x.png 1x, media/lightning-enhanced-4x.png 2x" width="448" height="288" alt="Enhanced Thunder Tome attack with the enemy and party HP bars" loading="lazy">
+            <div class="compare-left"><img src="media/lightning-wsc-2x.png" srcset="media/lightning-wsc-2x.png 1x, media/lightning-wsc-4x.png 2x" width="448" height="288" alt="Original WonderSwan Color Thunder Tome attack and combat log" loading="lazy"></div>
+            <div class="compare-line" aria-hidden="true"><span></span></div>
+            <input type="range" min="0" max="100" value="50" aria-label="Battle comparison">
+          </div>
+        </figure>
+      </div>
+      <div class="comparison-block">
+        <h3>Meat preview</h3>
+        <p class="comparison-copy">See what monster you'll become and how it will affect your stats <em>before</em> eating the meat.</p>
+        <figure class="panel compare" data-compare>
+          <figcaption class="compare-labels"><span>Original WSC</span><span>Enhanced</span></figcaption>
+          <div class="compare-view">
+            <img src="media/r4-meat-enhanced-2x.png" srcset="media/r4-meat-enhanced-2x.png 1x, media/r4-meat-enhanced-4x.png 2x" width="448" height="288" alt="Enhanced meat preview of a Harpy becoming an Iron Giant, with all five stats increasing" loading="lazy">
+            <div class="compare-left"><img src="media/meat-prompt-wsc-2x.png" srcset="media/meat-prompt-wsc-2x.png 1x, media/meat-prompt-wsc-4x.png 2x" width="448" height="288" alt="Original WonderSwan Color prompt to eat the meat, with preview turned off" loading="lazy"></div>
+            <div class="compare-line" aria-hidden="true"><span></span></div>
+            <input type="range" min="0" max="100" value="50" aria-label="Meat preview comparison">
+          </div>
+        </figure>
+      </div>
+        </div>
+      </div>
+    </section>
+    <section class="hair" id="translation">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-3.png">
+              <img src="media/walk-gb-3.gif" width="32" height="32" alt="">
+            </picture>
+            <span>English and Japanese</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-3.png">
+              <img src="media/walk-wsc-3.gif" width="32" height="32" alt="">
+            </picture>
+          </h2>
+          <p>The entire game has been given a new, human-localized English translation, designed for the new UI.</p><p>The original Japanese text is also available.</p><p>Drag the sliders to compare English and Japanese in the inventory and battle screenshots.</p>
+        </div>
+        <div class="two">
+          <div class="comparison-block">
+            <h3>Inventory</h3>
+            <figure class="panel compare" data-compare>
+              <figcaption class="compare-labels"><span>English</span><span>Japanese</span></figcaption>
+              <div class="compare-view">
+                <img src="media/r4-menu-ja-2x.png" srcset="media/r4-menu-ja-2x.png 1x, media/r4-menu-ja-4x.png 2x" width="448" height="288" alt="Enhanced inventory in Japanese" loading="lazy">
+                <div class="compare-left"><img src="media/r4-menu-en-2x.png" srcset="media/r4-menu-en-2x.png 1x, media/r4-menu-en-4x.png 2x" width="448" height="288" alt="Enhanced inventory in English" loading="lazy"></div>
+                <div class="compare-line" aria-hidden="true"><span></span></div>
+                <input type="range" min="0" max="100" value="100" aria-label="Inventory language comparison">
+              </div>
+            </figure>
+          </div>
+          <div class="comparison-block">
+            <h3>Battle</h3>
+            <figure class="panel compare" data-compare>
+              <figcaption class="compare-labels"><span>English</span><span>Japanese</span></figcaption>
+              <div class="compare-view">
+                <img src="media/battle-ja-2x.png" srcset="media/battle-ja-2x.png 1x, media/battle-ja-4x.png 2x" width="448" height="288" alt="Enhanced combat log and HP bars in Japanese" loading="lazy">
+                <div class="compare-left"><img src="media/battle-en-2x.png" srcset="media/battle-en-2x.png 1x, media/battle-en-4x.png 2x" width="448" height="288" alt="Enhanced combat log and HP bars in English" loading="lazy"></div>
+                <div class="compare-line" aria-hidden="true"><span></span></div>
+                <input type="range" min="0" max="100" value="100" aria-label="Battle language comparison">
+              </div>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="hair" id="boosts"><div class="wrap"><div class="section-head"><h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-dragon-king.png">
+              <img src="media/walk-gb-dragon-king.gif" width="32" height="32" alt="">
+            </picture>
+            <span>Boosts and Cheats</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-dragon-king.png">
+              <img src="media/walk-wsc-dragon-king.gif" width="32" height="32" alt="">
+            </picture>
+          </h2><p>Adjust the game’s presentation and controls, or use optional boosts and cheats.</p></div><div class="two options-grid"><figure class="panel"><div class="image-frame"><img src="media/r3-options-video-2x.png" srcset="media/r3-options-video-2x.png 1x, media/r3-options-video-4x.png 2x" width="448" height="288" alt="Enhanced Graphics mode, Frame Pacing and display settings" loading="lazy"></div><figcaption><a class="panel-title" href="media/r3-options-video-4x.png">Video Options</a></figcaption></figure><figure class="panel"><div class="image-frame"><img src="media/r3-options-gamepad-2x.png" srcset="media/r3-options-gamepad-2x.png 1x, media/r3-options-gamepad-4x.png 2x" width="448" height="288" alt="Enhanced Gamepad bindings, two binding slots and controller icon options" loading="lazy"></div><figcaption><span class="panel-title">Gamepad remapping</span></figcaption></figure><figure class="panel"><div class="image-frame"><img src="media/r3-options-boosts-2x.png" srcset="media/r3-options-boosts-2x.png 1x, media/r3-options-boosts-4x.png 2x" width="448" height="288" alt="Enhanced Optional encounters, gold, damage and stat gain settings on the Cheats page" loading="lazy"></div><figcaption><span class="panel-title">Boosts and Cheats</span></figcaption></figure></div></div></section><section class="hair" id="project"><div class="wrap"><div class="section-head"><h2 class="with-walkers">
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-gb-creator.png">
+              <img src="media/walk-gb-creator.gif" width="32" height="32" alt="">
+            </picture>
+            <span>About the project</span>
+            <picture class="section-walker" aria-hidden="true">
+              <source media="(prefers-reduced-motion: reduce)" srcset="media/walk-wsc-creator.png">
+              <img src="media/walk-wsc-creator.gif" width="32" height="32" alt="">
+            </picture>
+          </h2>
+          <p>SawGod is a full rebuild of a decompilation of 魔界塔士 Sa・Ga / Final Fantasy Legend. SaGa is one of my favorite games of all time, one I consider foundational to understanding JRPGs, and one that is depressingly underappreciated in the West. My goal has been to give a small bit of shine to this 37-year-old RPG and hopefully introduce some new players to this classic game.</p>
+        </div>
+        <div class="project-notes">
+          <div class="project-note">
+            <h3>AI Disclosure</h3>
+            <p>SawGod was made with Claude. I consider this decomp “AI-assisted,” not “vibe-coded.”</p><p>SawGod is built on top of a function-complete decompilation of the 2002 WonderSwan Color version. It is <em>not</em> an emulation wrapper. Once the WonderSwan decomp was complete, quality-of-life features were added, as well as the Game Boy and Enhanced modes as presentation layers. To support Enhanced mode, the decomp was modified and labeled to be more easily moddable and understandable, with support for replacing graphics, game data, and text as standard, externalized resource files.</p>
+            <p>The new English translation and Enhanced music arrangements were 100% made by a human (me). Game Boy and WonderSwan Color graphics are 100% original. Enhanced mode was designed with a "light touch" to reflect the original creators' intent as much as possible. The biggest non-reversible change I made was the new UI framework and layout, used by all graphics modes, and necessary to support the new English translation.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer><div class="wrap foot"><p>SawGod is available for Windows, macOS, Linux, and Android</p><p>Requires a compatible WonderSwan Color ROM supplied by the player.</p><p>Questions? Contact <a href="mailto:projectsawgod@gmail.com">projectsawgod@gmail.com</a></p></div>
+    <div class="wrap">
+      <div class="webring" id="webring">
+        <div class="webring-mark"><a href="#webring"><img src="media/sawgod_sg_mark.png" width="44" height="44" alt="SawGod"></a></div>
+        <div class="webring-info">
+          <strong><a href="#webring">WonderSwan Decomp Webring</a></strong>
+          <p>SawGod is member #1 of 1.</p>
+        </div>
+        <nav aria-label="WonderSwan Decomp Webring">
+          <a href="#webring">[Prev 5]</a>
+          <a href="#webring">[Prev]</a>
+          <a href="#webring">[Next]</a>
+          <a href="#webring">[Random]</a>
+          <a href="#webring">[Next 5]</a>
+          <a href="#webring">[List]</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+  <script>
+    for (const comparison of document.querySelectorAll('[data-compare]')) {
+      const view = comparison.querySelector('.compare-view');
+      const range = view.querySelector('input');
+      function update() {
+        view.style.setProperty('--split', range.value + '%');
+        range.setAttribute('aria-valuetext', range.value + '% of the left image visible');
+      }
+      range.addEventListener('input', update);
+      update();
+    }
+  </script>
 </body>
 </html>
