@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="How SawGod is built: the non-matching decompilation of the WonderSwan Color game, the hardware model it runs on, and the port around it.">
+  <meta name="description" content="How SawGod is built: the static recomp of the WonderSwan Color game, partly decompiled for readability, the hardware model it runs on, and the port around it.">
   <meta name="color-scheme" content="dark">
   <title>SawGod: How it works</title>
   <link rel="stylesheet" href="site.css">
@@ -121,7 +121,7 @@
     <div class="wrap page-head">
       <h1>How SawGod works</h1>
       <p>SawGod is not an emulator running the cartridge. Every routine of the 2002 WonderSwan Color game was
-        decompiled into C++ (a non-matching decompilation: it doesn't rebuild the original ROM), and that code now runs natively, on a small model of the WonderSwan that keeps its memory
+        statically recompiled into C++, and part of it decompiled for readability; that code now runs natively, on a small model of the WonderSwan that keeps its memory
         and timing exact. One game runs underneath; Game Boy, WonderSwan Color and Enhanced are three ways of
         presenting it, and the menus, music, saves and mods are built around it.</p>
     </div>
@@ -157,9 +157,9 @@
             <p class="stage-label"><b>2</b>The game</p>
             <div class="machine">
               <div class="layer layer-game">
-                <h3>The decompiled game</h3>
-                <p>All 1,300 routines of the original, as C++ source; some still keep the original's register-level
-                  structure. Same rules, numbers and random numbers as the cartridge.</p>
+                <h3>The recompiled game</h3>
+                <p>All 1,300 routines of the original, as C++: about half are still instruction-level translations,
+                  the rest rewritten for readability. Same rules, numbers and random numbers as the cartridge.</p>
                 <span class="where"><code>src/game/</code></span>
               </div>
               <div class="layer">
@@ -226,13 +226,13 @@
         <ol class="steps">
           <li class="panel"><h3>Read input</h3><p>Keys and pads become WonderSwan buttons. While Options is open,
             the game waits.</p></li>
-          <li class="panel"><h3>Run the game</h3><p>The decompiled routines run until the game waits for the next
+          <li class="panel"><h3>Run the game</h3><p>The recompiled routines run until the game waits for the next
             frame, just as it did on the hardware.</p></li>
           <li class="panel"><h3>Sound and saves</h3><p>The chosen music path gets its samples; any save the game
             made is written to disk.</p></li>
           <li class="panel"><h3>Draw</h3><p>GB, WSC or Enhanced, plus the menus, presented at your display's own
             refresh rate.</p></li>
-          <li class="panel check"><h3>Routine by routine</h3><p>Each decompiled routine is run side by side with
+          <li class="panel check"><h3>Routine by routine</h3><p>Each recompiled routine is run side by side with
             the original machine code on the same inputs, and every register and byte of memory must match.</p></li>
         </ol>
       </div>
